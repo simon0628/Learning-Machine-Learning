@@ -5,10 +5,6 @@ import scipy.optimize as op
 def load_txt(filename, names):
     data = pd.read_csv(filename, sep=",", header=None, names = names)
     return data
-
-def normalize(X):
-    X = (X - X.mean(axis = 0))/ X.std(axis = 0)
-    return X
     
 class LinearRegression:
     def h(self, theta, x):
@@ -35,8 +31,20 @@ class LogisticRegression:
     def __init__(self, n):
         # n: feature number
         self.theta = np.zeros((n+1, 1))
+        self.mean = None
+        self.std = None
 
-    def train(self, x, y, max_iter = 1500, alpha = 0.1):
+    def normalize(self, x):
+        self.mean = x.mean(axis = 0)
+        self.std = x.std(axis = 0)
+        x = (x - self.mean)/ self.std
+        return x
+
+    def train(self, x, y, max_iter = 1500, alpha = 0.1): 
+
+        x = self.normalize(x)
+        x = np.concatenate((np.ones((len(y),1)),x), axis=1)
+
         losses = list()
         for _ in range(max_iter):  
             loss = self.loss(self.theta, x, y)
@@ -45,6 +53,10 @@ class LogisticRegression:
         return losses
 
     def train_scipy(self, x, y):
+
+        x = self.normalize(x)
+        x = np.concatenate((np.ones((len(y),1)),x), axis=1)
+
         result = op.minimize(fun = self.loss, 
                                 x0 = self.theta, 
                                 args = (x, y))
@@ -53,6 +65,8 @@ class LogisticRegression:
         loss = result.fun
         return loss
 
+    def test(self, x):
+        return self.h(self.theta, np.concatenate((np.ones(1),(x - self.mean)/self.std)))
 
     def sigmoid(self, theta, x):
         return 1/(1+np.exp(-x.dot(theta)))
