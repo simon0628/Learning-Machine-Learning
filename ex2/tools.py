@@ -40,24 +40,23 @@ class LogisticRegression:
         x = (x - self.mean)/ self.std
         return x
 
-    def train(self, x, y, max_iter = 1500, alpha = 0.1): 
-
+    def preprocess(self, x, y):
         x = self.normalize(x)
         x = np.concatenate((np.ones((len(y),1)),x), axis=1)
+        return x
 
-        losses = list()
+    def train(self, x, y, max_iter = 1500, alpha = 0.1): 
+        x = self.preprocess(x, y)
+
         for _ in range(max_iter):  
-            loss = self.loss(self.theta, x, y)
-            losses.append(loss)
-            self.grad_des(self.theta, alpha, x, y)
-        return losses
+            self.grad_des_reg(self.theta, alpha, x, y)
+        loss = self.loss_reg(self.theta, x, y)
+        return loss
 
     def train_scipy(self, x, y):
+        x = self.preprocess(x, y)
 
-        x = self.normalize(x)
-        x = np.concatenate((np.ones((len(y),1)),x), axis=1)
-
-        result = op.minimize(fun = self.loss, 
+        result = op.minimize(fun = self.loss_reg, 
                                 x0 = self.theta, 
                                 args = (x, y))
 
@@ -90,3 +89,25 @@ class LogisticRegression:
             tmp_thetas.append(tmp_theta)
         for j in range(len(theta)):
             theta[j] = tmp_thetas[j]
+
+    def loss_reg(self, theta, x, y, lam = 1):
+        total = 0
+        m = len(y)
+        for i in range(m):
+            htheta = self.h(theta, x[i])
+            total += (-y[i] * np.log(htheta) - (1-y[i]) * np.log(1-htheta))
+        return total / m + lam / (2*m) * sum([t*t for t in theta[1:]])
+
+    def grad_des_reg(self, theta, alpha, x, y, lam = 1):
+        m = len(y)
+        tmp_thetas = list()
+
+        tmp_theta = theta[0] - alpha/m * sum([(self.h(theta, x[i])-y[i])*x[i][0] for i in range(m)])
+        tmp_thetas.append(tmp_theta)
+
+        for j in range(1, len(theta)):
+            tmp_theta = (1-lam/m)*theta[j] - alpha/m * sum([(self.h(theta, x[i])-y[i])*x[i][j] for i in range(m)])
+            tmp_thetas.append(tmp_theta)
+        for j in range(len(theta)):
+            theta[j] = tmp_thetas[j]
+
