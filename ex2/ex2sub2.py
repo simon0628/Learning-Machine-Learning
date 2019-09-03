@@ -6,11 +6,29 @@ from sklearn.preprocessing import PolynomialFeatures
 
 from tools import *
 
+
+def plot_decision_boundary(X, y, model):
+    pos = np.where(y == 1)
+    neg = np.where(y == 0)
+    plt.plot(X[pos][:,0], X[pos][:,1], 'k+')
+    plt.plot(X[neg][:,0], X[neg][:,1], 'bo')
+
+    x_min, x_max = X[:, 0].min() * 1.2, X[:, 0].max() * 1.2
+    y_min, y_max = X[:, 1].min() * 1.2, X[:, 1].max() * 1.2
+    xx, yy = np.meshgrid(np.arange(x_min, x_max, 0.1),np.arange(y_min, y_max, 0.1))
+    
+    XX = np.array([xx.ravel(), yy.ravel()]).T
+    XX = PolynomialFeatures(degree = 6, include_bias = False).fit_transform(XX)
+    Z = np.array([model.test(i) for i in XX]).reshape(xx.shape)
+
+    plt.contourf(xx, yy, Z, alpha = 0.2, levels = 1)
+    plt.show()
+
 data = load_txt('ex2data2.txt', ['test1', 'test2', 'accepted'])
 
 data = data.to_numpy()
-X = data[:,:-1]
-X = PolynomialFeatures(degree = 6, include_bias = False).fit_transform(X)
+X_raw = data[:,:-1]
+X = PolynomialFeatures(degree = 6, include_bias = False).fit_transform(X_raw)
 y = data[:,-1]
 
 model = LogisticRegression(len(X[0]))
@@ -19,23 +37,4 @@ print('loss =', loss)
 theta = model.theta
 print('theta =', theta)
 
-# pos = np.where(y == 1)
-# neg = np.where(y == 0)
-# plt.plot(X[pos][:,0], X[pos][:,1], 'k+')
-# plt.plot(X[neg][:,0], X[neg][:,1], 'yo')
-
-# denormalize
-# mean1 = np.mean(X[:,0])
-# std1 = np.std(X[:,0])
-# mean2 = np.mean(X[:,1])
-# std2 = np.std(X[:,1])
-# x1s = list()
-# x2s = list()
-# for x1 in X[:,0]:
-#     x11 = (x1-mean1)/std1
-#     x22 = -(x11*theta[1]+theta[0])/theta[2]
-#     x2 = x22 * std2 + mean2
-#     x1s.append(x1)
-#     x2s.append(x2)
-# plt.plot(x1s,x2s,'b-')
-plt.show()
+plot_decision_boundary(X_raw, y, model)

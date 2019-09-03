@@ -6,6 +6,9 @@ def load_txt(filename, names):
     data = pd.read_csv(filename, sep=",", header=None, names = names)
     return data
     
+def sigmoid(z):    
+    return 1/(1+np.exp(-z))
+
 class LinearRegression:
     def h(self, theta, x):
         return x.dot(theta)
@@ -27,7 +30,6 @@ class LinearRegression:
 
 
 class LogisticRegression:
-
     def __init__(self, n):
         # n: feature number
         self.theta = np.zeros((n+1, 1))
@@ -67,11 +69,8 @@ class LogisticRegression:
     def test(self, x):
         return self.h(self.theta, np.concatenate((np.ones(1),(x - self.mean)/self.std)))
 
-    def sigmoid(self, theta, x):
-        return 1/(1+np.exp(-x.dot(theta)))
-
     def h(self, theta, x):
-        return self.sigmoid(theta, x)
+        return sigmoid(x.dot(theta))
 
     def loss(self, theta, x, y):
         total = 0
