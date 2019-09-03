@@ -47,18 +47,18 @@ class LogisticRegression:
         x = np.concatenate((np.ones((len(y),1)),x), axis=1)
         return x
 
-    def train(self, x, y, max_iter = 1500, alpha = 0.1): 
+    def train(self, x, y, max_iter = 1500, alpha = 0.1, lam = 1): 
         x = self.preprocess(x, y)
 
         for _ in range(max_iter):  
-            self.grad_des_reg(self.theta, alpha, x, y)
-        loss = self.loss_reg(self.theta, x, y)
+            self.grad_des(self.theta, alpha, x, y, lam)
+        loss = self.loss(self.theta, x, y, lam)
         return loss
 
     def train_scipy(self, x, y):
         x = self.preprocess(x, y)
 
-        result = op.minimize(fun = self.loss_reg, 
+        result = op.minimize(fun = self.loss, 
                                 x0 = self.theta, 
                                 args = (x, y))
 
@@ -72,24 +72,7 @@ class LogisticRegression:
     def h(self, theta, x):
         return sigmoid(x.dot(theta))
 
-    def loss(self, theta, x, y):
-        total = 0
-        m = len(y)
-        for i in range(m):
-            htheta = self.h(theta, x[i])
-            total += (-y[i] * np.log(htheta) - (1-y[i]) * np.log(1-htheta))
-        return total / m
-
-    def grad_des(self, theta, alpha, x, y):
-        m = len(y)
-        tmp_thetas = list()
-        for j in range(len(theta)):
-            tmp_theta = theta[j] - alpha/m * sum([(self.h(theta, x[i])-y[i])*x[i][j] for i in range(m)])
-            tmp_thetas.append(tmp_theta)
-        for j in range(len(theta)):
-            theta[j] = tmp_thetas[j]
-
-    def loss_reg(self, theta, x, y, lam = 1):
+    def loss(self, theta, x, y, lam = 0):
         total = 0
         m = len(y)
         for i in range(m):
@@ -97,7 +80,7 @@ class LogisticRegression:
             total += (-y[i] * np.log(htheta) - (1-y[i]) * np.log(1-htheta))
         return total / m + lam / (2*m) * sum([t*t for t in theta[1:]])
 
-    def grad_des_reg(self, theta, alpha, x, y, lam = 1):
+    def grad_des(self, theta, alpha, x, y, lam = 0):
         m = len(y)
         tmp_thetas = list()
 

@@ -32,7 +32,7 @@ X = PolynomialFeatures(degree = 6, include_bias = False).fit_transform(X_raw)
 y = data[:,-1]
 
 model = LogisticRegression(len(X[0]))
-loss = model.train_scipy(X,y)
+loss = model.train(X, y, lam = 1)
 print('loss =', loss)
 theta = model.theta
 print('theta =', theta)
