@@ -1,4 +1,5 @@
 # Learning-Machine-Learning
 
-python implementation of Andrew Ng Machine Learning homework
+STILL WORKING...
 
+Python implementation of Andrew Ng Machine Learning homework
