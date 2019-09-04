@@ -76,7 +76,7 @@ class LogisticRegression:
             loss = self.loss(self.theta, x, y, lam)
             # print(loss)
             # stop when the loss is steady
-            if np.abs(last_loss - loss) < 1e-3:
+            if np.abs(last_loss - loss) < 1e-6:
                 break
             last_loss = loss
         return loss
