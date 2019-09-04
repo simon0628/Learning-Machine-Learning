@@ -66,10 +66,10 @@ class LogisticRegression:
         x = np.concatenate((np.ones((len(y),1)),x), axis=1)
         return x
 
-    def train(self, x, y, max_iter = 1500, alpha = 0.1, lam = 0): 
+    def train(self, x, y, max_iter = 1500, alpha = 0.1, lam = 1): 
         x = self.preprocess(x, y)
-        last_loss = self.loss(self.theta, x, y, lam)
 
+        last_loss = self.loss(self.theta, x, y, lam)
         for _ in range(max_iter):  
             self.grad_des(alpha, x, y, lam)
             
@@ -87,7 +87,7 @@ class LogisticRegression:
         result = op.minimize(fun = self.loss, 
                                 x0 = self.theta, 
                                 args = (x, y))
-
+        print(result)
         self.theta = result.x
         loss = result.fun
         return loss
@@ -99,18 +99,20 @@ class LogisticRegression:
     def h(self, theta, x):
         return sigmoid(x.dot(theta))
 
-    def loss(self, theta, x, y, lam = 0):
+    def loss(self, theta, x, y, lam = 1):
         m = len(y)
 
         htheta = self.h(self.theta, x)
         a = np.log(htheta)
-        b = np.log(np.ones(htheta.shape)-htheta)
+        bb = np.ones(htheta.shape)-htheta
+        bb = np.where(bb == 0, 1e-6, bb)
+        b = np.log(bb)
         cross_entropy = (-y.T.dot(a)) - (np.ones(y.shape)-y).T.dot(b)
 
         regular = lam / (2*m) * sum([t*t for t in self.theta[1:]])
         return cross_entropy / m + regular
 
-    def grad_des(self, alpha, x, y, lam = 0):
+    def grad_des(self, alpha, x, y, lam = 1):
         m = len(y)
 
         beta = self.h(self.theta, x).reshape(y.shape) - y

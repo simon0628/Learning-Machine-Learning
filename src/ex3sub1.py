@@ -1,9 +1,9 @@
+import sys
 import pandas as pd
 import numpy as np
 from matplotlib import pyplot as plt 
 # from sklearn.preprocessing import PolynomialFeatures
 from sklearn.model_selection import train_test_split
-
 from tools import *
 # from tqdm import tqdm
 
@@ -63,8 +63,10 @@ x_train, x_test, y_train, y_test = train_test_split(X, y_onehot, test_size=0.25)
 models = list()
 for k in range(K):
     print('training on digit \'%d\'' % y_dict[k], end = ': ')
+    sys.stdout.flush()
     model = LogisticRegression(len(X[0]))
-    loss = model.train(x_train, y_train[:,k], 800, alpha = 0.3, lam = 10)
+    loss = model.train(x_train, y_train[:,k], 1500, alpha = 0.3, lam = 5)
+    # loss = model.train_scipy(x_train, y_train[:,k])
     print('loss =', loss)
     models.append(model)
 
