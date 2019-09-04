@@ -76,18 +76,20 @@ class LogisticRegression:
             loss = self.loss(self.theta, x, y, lam)
             # print(loss)
             # stop when the loss is steady
-            if np.abs(last_loss - loss) < 1e-6:
+            if np.abs(last_loss - loss) < 1e-3:
                 break
             last_loss = loss
         return loss
 
-    def train_scipy(self, x, y):
+    def train_scipy(self, x, y, max_iter = 1500, lam = 1):
         x = self.preprocess(x, y)
 
         result = op.minimize(fun = self.loss, 
                                 x0 = self.theta, 
-                                args = (x, y))
-        print(result)
+                                args = (x, y, lam),
+                                tol=1e-3,
+                                options={'maxiter': max_iter})
+        # print(result)
         self.theta = result.x
         loss = result.fun
         return loss
@@ -99,17 +101,24 @@ class LogisticRegression:
     def h(self, theta, x):
         return sigmoid(x.dot(theta))
 
+    # CAUTION: don't use self.theta in loss function
+    # otherwise the op.minimize function won't work (it passes in temp theta)
     def loss(self, theta, x, y, lam = 1):
+        # vectorized loss function
         m = len(y)
 
-        htheta = self.h(self.theta, x)
-        a = np.log(htheta)
+        htheta = self.h(theta, x)
+
+        # CAUTION: if a is too small (i.e. <1e-8 and reduced to 0), log(a) will crash
+        aa = np.where(htheta == 0, 1e-6, htheta)
+        a = np.log(aa)
+
         bb = np.ones(htheta.shape)-htheta
         bb = np.where(bb == 0, 1e-6, bb)
         b = np.log(bb)
-        cross_entropy = (-y.T.dot(a)) - (np.ones(y.shape)-y).T.dot(b)
 
-        regular = lam / (2*m) * sum([t*t for t in self.theta[1:]])
+        cross_entropy = (-y.T.dot(a)) - (np.ones(y.shape)-y).T.dot(b)
+        regular = lam / (2*m) * sum([t*t for t in theta[1:]])
         return cross_entropy / m + regular
 
     def grad_des(self, alpha, x, y, lam = 1):
