@@ -5,7 +5,7 @@ import scipy.io as scio
 # from tqdm import tqdm
 
 def expath(n):
-    return '../ex' + str(n) + '/'
+    return '../data/ex' + str(n) + '/'
 
 def load_txt(filename, names):
     data = pd.read_csv(filename, sep=",", header=None, names = names)
