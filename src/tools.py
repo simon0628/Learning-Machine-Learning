@@ -3,6 +3,9 @@ import numpy as np
 import scipy.optimize as op
 import scipy.io as scio
 
+def expath(n):
+    return '../ex' + str(n) + '/'
+
 def load_txt(filename, names):
     data = pd.read_csv(filename, sep=",", header=None, names = names)
     return data
@@ -91,7 +94,9 @@ class LogisticRegression:
         a = np.log(htheta)
         b = np.log(np.ones(htheta.shape)-htheta)
         cross_entropy = (-y.T.dot(a)) - (np.ones(y.shape)-y).T.dot(b)
-        return cross_entropy / m
+
+        regular = lam / (2*m) * sum([t.dot(t) for t in self.theta[1:]])
+        return cross_entropy / m + regular
 
     def grad_des(self, alpha, x, y, lam = 0):
         m = len(y)

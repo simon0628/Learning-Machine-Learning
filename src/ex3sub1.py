@@ -19,7 +19,7 @@ def display_data(X,y, size):
     plt.show()
 
 
-[X, y] = load_mat("../ex3/ex3data1.mat",['X','y'])
+[X, y] = load_mat(expath(3) + "ex3data1.mat",['X','y'])
 
 display_data(X,y, 10)
 # data = data.to_numpy()

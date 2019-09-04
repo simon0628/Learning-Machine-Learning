@@ -24,7 +24,7 @@ def plot_decision_boundary(X, y, model):
     plt.contourf(xx, yy, Z, alpha = 0.2, levels = 1)
     plt.show()
 
-data = load_txt('ex2data2.txt', ['test1', 'test2', 'accepted'])
+data = load_txt(expath(2) + 'ex2data2.txt', ['test1', 'test2', 'accepted'])
 
 data = data.to_numpy()
 X_raw = data[:,:-1]

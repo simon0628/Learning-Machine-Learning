@@ -5,7 +5,7 @@ import scipy.optimize as op
 
 from tools import *
 
-data = load_txt('../ex2/ex2data1.txt', ['exam1', 'exam2', 'admit'])
+data = load_txt(expath(2) + 'ex2data1.txt', ['exam1', 'exam2', 'admit'])
 
 data = data.to_numpy()
 X = data[:,:-1]
