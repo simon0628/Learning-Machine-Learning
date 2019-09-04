@@ -5,14 +5,14 @@ import scipy.optimize as op
 
 from tools import *
 
-data = load_txt('ex2data1.txt', ['exam1', 'exam2', 'admit'])
+data = load_txt('../ex2/ex2data1.txt', ['exam1', 'exam2', 'admit'])
 
 data = data.to_numpy()
 X = data[:,:-1]
 y = data[:,-1]
 
 model = LogisticRegression(len(X[0]))
-loss = model.train_scipy(X,y)
+loss = model.train(X,y)
 theta = model.theta
 print('theta =', theta)
 print('loss =', loss)

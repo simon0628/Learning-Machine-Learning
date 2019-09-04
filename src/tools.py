@@ -53,12 +53,17 @@ class LogisticRegression:
         x = np.concatenate((np.ones((len(y),1)),x), axis=1)
         return x
 
-    def train(self, x, y, max_iter = 1500, alpha = 0.1, lam = 1): 
+    def train(self, x, y, max_iter = 1500, alpha = 0.1, lam = 0): 
         x = self.preprocess(x, y)
+        last_loss = 0
 
         for _ in range(max_iter):  
-            self.grad_des(self.theta, alpha, x, y, lam)
-        loss = self.loss(self.theta, x, y, lam)
+            self.grad_des(alpha, x, y, lam)
+            
+            loss = self.loss(self.theta, x, y, lam)
+            if np.abs(last_loss - loss) < 1e-6:
+                break
+            last_loss = loss
         return loss
 
     def train_scipy(self, x, y):
@@ -82,20 +87,15 @@ class LogisticRegression:
         total = 0
         m = len(y)
         for i in range(m):
-            htheta = self.h(theta, x[i])
+            htheta = self.h(self.theta, x[i])
             total += (-y[i] * np.log(htheta) - (1-y[i]) * np.log(1-htheta))
-        return total / m + lam / (2*m) * sum([t*t for t in theta[1:]])
+        return total / m + lam / (2*m) * sum([t*t for t in self.theta[1:]])
 
-    def grad_des(self, theta, alpha, x, y, lam = 0):
+    def grad_des(self, alpha, x, y, lam = 0):
         m = len(y)
-        tmp_thetas = list()
 
-        tmp_theta = theta[0] - alpha/m * sum([(self.h(theta, x[i])-y[i])*x[i][0] for i in range(m)])
-        tmp_thetas.append(tmp_theta)
+        beta = self.h(self.theta, x).reshape(y.shape) - y
+        deri = (x.T.dot(beta)/m).reshape(self.theta.shape)
+        theta_reg = np.concatenate(([self.theta[0]], (1-lam/m) * np.array(self.theta[1:])))
 
-        for j in range(1, len(theta)):
-            tmp_theta = (1-lam/m)*theta[j] - alpha/m * sum([(self.h(theta, x[i])-y[i])*x[i][j] for i in range(m)])
-            tmp_thetas.append(tmp_theta)
-        for j in range(len(theta)):
-            theta[j] = tmp_thetas[j]
-
+        self.theta = theta_reg - (alpha * deri)
