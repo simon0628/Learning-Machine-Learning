@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import scipy.optimize as op
 import scipy.io as scio
+# from tqdm import tqdm
 
 def expath(n):
     return '../ex' + str(n) + '/'
@@ -39,15 +40,24 @@ class LinearRegression:
 
 
 class LogisticRegression:
-    def __init__(self, n):
+    def __init__(self, n, k = 1):
         # n: feature number
-        self.theta = np.zeros((n+1, 1))
+        self.theta = np.zeros((n+1, k))
         self.mean = None
         self.std = None
+        self.zero_std_feature = None
 
     def normalize(self, x):
-        self.mean = x.mean(axis = 0)
         self.std = x.std(axis = 0)
+
+        # remove all the features that have zero std
+        self.zero_std_feature = np.where(self.std == 0)[0]
+        # print('remove features:', self.zero_std_feature)
+        x = np.delete(x, self.zero_std_feature, axis = 1)
+        self.std = np.delete(self.std, self.zero_std_feature)
+        self.theta = np.delete(self.theta, self.zero_std_feature)
+
+        self.mean = x.mean(axis = 0)
         x = (x - self.mean)/ self.std
         return x
 
@@ -65,6 +75,7 @@ class LogisticRegression:
             
             loss = self.loss(self.theta, x, y, lam)
             # print(loss)
+            # stop when the loss is steady
             if np.abs(last_loss - loss) < 1e-6:
                 break
             last_loss = loss
@@ -82,6 +93,7 @@ class LogisticRegression:
         return loss
 
     def test(self, x):
+        x = np.delete(x, self.zero_std_feature)
         return self.h(self.theta, np.concatenate((np.ones(1),(x - self.mean)/self.std)))
 
     def h(self, theta, x):
@@ -95,7 +107,7 @@ class LogisticRegression:
         b = np.log(np.ones(htheta.shape)-htheta)
         cross_entropy = (-y.T.dot(a)) - (np.ones(y.shape)-y).T.dot(b)
 
-        regular = lam / (2*m) * sum([t.dot(t) for t in self.theta[1:]])
+        regular = lam / (2*m) * sum([t*t for t in self.theta[1:]])
         return cross_entropy / m + regular
 
     def grad_des(self, alpha, x, y, lam = 0):
