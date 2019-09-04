@@ -12,7 +12,7 @@ X = data[:,:-1]
 y = data[:,-1]
 
 model = LogisticRegression(len(X[0]))
-loss = model.train(X,y)
+loss = model.train_scipy(X,y)
 theta = model.theta
 print('theta =', theta)
 print('loss =', loss)
