@@ -4,7 +4,7 @@ from matplotlib import pyplot as plt
 
 from tools import *
 
-data = load_txt('ex1data1.txt', ['population', 'profit'])
+data = load_txt(expath(1) + 'ex1data1.txt', ['population', 'profit'])
 
 data = data.to_numpy()
 X = data[:,0]
