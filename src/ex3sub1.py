@@ -62,9 +62,9 @@ x_train, x_test, y_train, y_test = train_test_split(X, y_onehot, test_size=0.25)
 
 models = list()
 for k in range(K):
-    print('training digit \'%d\' ' % y_dict[k], end = ',')
+    print('training on digit \'%d\'' % y_dict[k], end = ': ')
     model = LogisticRegression(len(X[0]))
-    loss = model.train(x_train, y_train[:,k],800)
+    loss = model.train(x_train, y_train[:,k], 800, alpha = 0.3, lam = 10)
     print('loss =', loss)
     models.append(model)
 
