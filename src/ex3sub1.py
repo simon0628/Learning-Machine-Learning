@@ -66,7 +66,7 @@ for k in range(K):
     sys.stdout.flush()
     model = LogisticRegression(len(X[0]))
     # loss = model.train(x_train, y_train[:,k], 1500, alpha = 0.3, lam = 5)
-    loss = model.train_scipy(x_train, y_train[:,k])
+    loss = model.train_scipy(x_train, y_train[:,k], lam = 10)
     print('loss =', loss)
     models.append(model)
 
