@@ -55,12 +55,13 @@ class LogisticRegression:
 
     def train(self, x, y, max_iter = 1500, alpha = 0.1, lam = 0): 
         x = self.preprocess(x, y)
-        last_loss = 0
+        last_loss = self.loss(self.theta, x, y, lam)
 
         for _ in range(max_iter):  
             self.grad_des(alpha, x, y, lam)
             
             loss = self.loss(self.theta, x, y, lam)
+            # print(loss)
             if np.abs(last_loss - loss) < 1e-6:
                 break
             last_loss = loss
@@ -84,12 +85,13 @@ class LogisticRegression:
         return sigmoid(x.dot(theta))
 
     def loss(self, theta, x, y, lam = 0):
-        total = 0
         m = len(y)
-        for i in range(m):
-            htheta = self.h(self.theta, x[i])
-            total += (-y[i] * np.log(htheta) - (1-y[i]) * np.log(1-htheta))
-        return total / m + lam / (2*m) * sum([t*t for t in self.theta[1:]])
+
+        htheta = self.h(self.theta, x)
+        a = np.log(htheta)
+        b = np.log(np.ones(htheta.shape)-htheta)
+        cross_entropy = (-y.T.dot(a)) - (np.ones(y.shape)-y).T.dot(b)
+        return cross_entropy / m
 
     def grad_des(self, alpha, x, y, lam = 0):
         m = len(y)
