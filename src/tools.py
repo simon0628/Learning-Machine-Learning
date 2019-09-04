@@ -1,11 +1,17 @@
 import pandas as pd
 import numpy as np
 import scipy.optimize as op
+import scipy.io as scio
 
 def load_txt(filename, names):
     data = pd.read_csv(filename, sep=",", header=None, names = names)
     return data
-    
+
+def load_mat(filename, names):
+    data = scio.loadmat(filename)
+    return [data[name] for name in names]
+
+
 def sigmoid(z):    
     return 1/(1+np.exp(-z))
 
