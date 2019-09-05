@@ -32,16 +32,17 @@ theta1, theta2 = load_mat(expath(3) + "ex3weights.mat",['Theta1','Theta2'])
 K, y_dict, y_onehot = onehot(y)
 
 layer_def = [400, 25, 10]
-theta = [theta1, theta2]
+
 model = NN(len(X[0]), layer_def)
 
 #%%
-
+model.fit(X, y_onehot, 1500)
+#%%
 y_preds = list()
 match = list()
 for i in range(len(X)):
-    a3 = model.forward_prop(theta, X[i])
-    y_pred = y_dict[deonehot(a3)]
+    a = model.predict(X[i])
+    y_pred = y_dict[deonehot(a)]
     # loss = model.loss(theta, X, y_onehot) 
     # print(loss)
     y_preds.append(y_pred)

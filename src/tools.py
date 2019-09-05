@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import scipy.optimize as op
 import scipy.io as scio
-# from tqdm import tqdm
+from tqdm import tqdm
 
 def expath(n):
     return '../data/ex' + str(n) + '/'
@@ -147,9 +147,12 @@ class NN:
         self.layer = layer
         self.l = len(layer)
 
-        self.theta = list()
+        self.theta = list() # theta-dim: l * (last_layer_dim * next_layer_dim)
         for i in range(self.l-1):
-            self.theta.append(self.rand_init([layer[i], layer[i+1]]))
+            self.theta.append(self.rand_init([layer[i]+1, layer[i+1]]))
+
+        self.a = None 
+        self.z = None
 
     def rand_init(self, shape, epi = 0.12):
         return np.random.random(shape)*2*epi-epi
@@ -158,31 +161,21 @@ class NN:
         x = np.concatenate((np.ones(1),x))
         return x
 
-    def fit(self, x, y, scipy = False, max_iter = 1500, alpha = 0.1, lam = 1): 
-        x = self.add_bias(x)
+    def fit(self, x, y, max_iter = 1500, alpha = 0.1, lam = 1): 
+        # x = self.add_bias(x)
 
-        if not scipy:
-            last_loss = self.loss(self.theta, x, y, lam)
-            for _ in range(max_iter):  
-                self.grad_des(alpha, x, y, lam)
-                
-                loss = self.loss(self.theta, x, y, lam)
-                # print(loss)
-                # stop when the loss is steady
-                if np.abs(last_loss - loss) < 1e-6:
-                    break
-                last_loss = loss
+        # loss = self.loss(self.theta, x, y, lam) # contains forward prop
 
-        else:
-            result = op.minimize(fun = self.loss, 
-                                x0 = self.theta, 
-                                args = (x, y, lam),
-                                tol=1e-3,
-                                options={'maxiter': max_iter})
-            # print(result)
-            self.theta = result.x
-            loss = result.fun
-
+        for _ in tqdm(range(max_iter)):  
+            self.grad_des(alpha, x, y, lam)
+            
+            # loss = self.loss(self.theta, x, y, lam)
+            # print(loss)
+            # stop when the loss is steady
+            # if np.abs(last_loss - loss) < 1e-6:
+            #     break
+            # last_loss = loss
+        loss = self.loss(self.theta, x, y, lam)
         return loss
 
     def predict(self, x):
@@ -191,19 +184,70 @@ class NN:
     def h(self, theta, x):
         return sigmoid(theta.dot(x))
 
-    def forward_prop(self, theta, x):
-        for i in range(1, self.l):
-            a = self.add_bias(x)
-            z = theta[i-1].dot(a)
-            x = sigmoid(z)
-        return x
+    def forward_prop(self, theta, x, save_az = False):
+        aa = self.add_bias(x) # a(1)
+        if save_az:
+            self.a[0].append(aa)
+
+        for i in range(1, self.l-1):
+            zz = theta[i-1].T.dot(aa)
+            x = sigmoid(zz)
+            aa = self.add_bias(x)
+
+            if save_az:
+                self.a[i].append(aa)
+                self.z[i-1].append(zz)
+
+        # a(end)
+        i = self.l-1
+        zz = theta[i-1].T.dot(aa)
+        aa = sigmoid(zz)
+        if save_az:
+            self.a[i].append(aa)
+            self.z[i-1].append(zz)
+
+        return aa
 
     def sigmoid_grad(self, z):
         return sigmoid(z)*(1-sigmoid(z))
 
-    def back_prop(self):
+    def back_prop(self, y):
+        # x = self.add_bias(x)
 
-        return
+        deltas = list()
+
+        delta = self.a[-1] - y
+        deltas.append(np.dot(np.transpose(self.a[-2]),delta))
+        for i in range(self.l-1, 1, -1):
+            new_delta = list()
+            for j in range(len(y)):
+                g_grad = self.sigmoid_grad(self.z[i-2][j])
+                tmp_delta = np.multiply(self.theta[i-1][1:,:].dot(delta[j]).dot(g_grad.T), g_grad)
+                new_delta.append(tmp_delta)
+      
+            deltas.append(np.dot(np.transpose(self.a[i-2]),new_delta))
+            delta = new_delta
+        deltas.reverse()
+        return deltas
+
+    def grad_des(self, alpha, x, y, lam = 1):
+
+        self.a = list() # a-dim: (l-1) * m * (current_layer_dim)
+        self.z = list()
+
+        for i in range(self.l-1):
+            self.a.append(list())
+            self.z.append(list())
+        self.a.append(list())
+
+        for i in range(len(y)):
+            self.forward_prop(self.theta, x[i], True)
+        
+        delta = self.back_prop(y)
+        self.theta -= np.array(delta)/len(y)
+        # theta_reg = np.concatenate(([self.theta[0]], (1-lam/m) * np.array(self.theta[1:])))
+
+        # self.theta = theta_reg - (alpha * deri)
 
     # CAUTION: don't use self.theta in loss function
     # otherwise the op.minimize function won't work (it passes in temp theta)
