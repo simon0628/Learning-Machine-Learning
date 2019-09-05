@@ -7,7 +7,7 @@ from sklearn.model_selection import train_test_split
 
 from tools import *
 # from tqdm import tqdm
-
+#%%
 def deonehot(y):
     loc = np.argmax(y)
     return loc
@@ -42,8 +42,8 @@ match = list()
 for i in range(len(X)):
     a3 = model.forward_prop(theta, X[i])
     y_pred = y_dict[deonehot(a3)]
-    loss = model.loss(theta, X, y_onehot) 
-    print(loss)
+    # loss = model.loss(theta, X, y_onehot) 
+    # print(loss)
     y_preds.append(y_pred)
     match.append(1 if (y_pred == y[i]) else 0)
 
@@ -51,3 +51,6 @@ for i in range(len(X)):
 
 precision = sum(match) / len(match)
 print('precision = ', precision)
+
+
+#%%

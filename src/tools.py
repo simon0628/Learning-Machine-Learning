@@ -141,59 +141,69 @@ class NN:
     def __init__(self, n, layer, k = 1):
         # n: feature number
         # k: label number
-        self.theta = np.zeros((n+1, k))
+        # l: layer number
         self.n = n
         self.k = k
         self.layer = layer
         self.l = len(layer)
 
-        self.mean = None
-        self.std = None
-        self.zero_std_feature = None
+        self.theta = list()
+        for i in range(self.l-1):
+            self.theta.append(self.rand_init([layer[i], layer[i+1]]))
+
+    def rand_init(self, shape, epi = 0.12):
+        return np.random.random(shape)*2*epi-epi
 
     def add_bias(self, x):
         x = np.concatenate((np.ones(1),x))
         return x
 
-    def fit(self, x, y, max_iter = 1500, alpha = 0.1, lam = 1): 
+    def fit(self, x, y, scipy = False, max_iter = 1500, alpha = 0.1, lam = 1): 
         x = self.add_bias(x)
 
-        last_loss = self.loss(self.theta, x, y, lam)
-        for _ in range(max_iter):  
-            self.grad_des(alpha, x, y, lam)
-            
-            loss = self.loss(self.theta, x, y, lam)
-            # print(loss)
-            # stop when the loss is steady
-            if np.abs(last_loss - loss) < 1e-6:
-                break
-            last_loss = loss
-        return loss
+        if not scipy:
+            last_loss = self.loss(self.theta, x, y, lam)
+            for _ in range(max_iter):  
+                self.grad_des(alpha, x, y, lam)
+                
+                loss = self.loss(self.theta, x, y, lam)
+                # print(loss)
+                # stop when the loss is steady
+                if np.abs(last_loss - loss) < 1e-6:
+                    break
+                last_loss = loss
 
-    def fit_scipy(self, x, y, max_iter = 1500, lam = 1):
-        x = self.add_bias(x)
-
-        result = op.minimize(fun = self.loss, 
+        else:
+            result = op.minimize(fun = self.loss, 
                                 x0 = self.theta, 
                                 args = (x, y, lam),
                                 tol=1e-3,
                                 options={'maxiter': max_iter})
-        # print(result)
-        self.theta = result.x
-        loss = result.fun
-        return loss
+            # print(result)
+            self.theta = result.x
+            loss = result.fun
 
-    def forward_prop(self, theta, x):
-        for i in range(1, self.l):
-            a = self.add_bias(x)
-            x = self.h(theta[i-1], a)
-        return x
+        return loss
 
     def predict(self, x):
         return self.forward_prop(self.theta, x)
 
     def h(self, theta, x):
         return sigmoid(theta.dot(x))
+
+    def forward_prop(self, theta, x):
+        for i in range(1, self.l):
+            a = self.add_bias(x)
+            z = theta[i-1].dot(a)
+            x = sigmoid(z)
+        return x
+
+    def sigmoid_grad(self, z):
+        return sigmoid(z)*(1-sigmoid(z))
+
+    def back_prop(self):
+
+        return
 
     # CAUTION: don't use self.theta in loss function
     # otherwise the op.minimize function won't work (it passes in temp theta)
@@ -214,13 +224,3 @@ class NN:
             total += sum([(-y[i][j] * a[j] - (1-y[i][j]) * b[j]) for j in range(k)])
         regular = lam/(2*m) * sum([np.sum(i) for i in np.square(theta)])
         return total / m + regular
-
-
-    def grad_des(self, alpha, x, y, lam = 1):
-        m = len(y)
-
-        beta = self.h(self.theta, x).reshape(y.shape) - y
-        deri = (x.T.dot(beta)/m).reshape(self.theta.shape)
-        theta_reg = np.concatenate(([self.theta[0]], (1-lam/m) * np.array(self.theta[1:])))
-
-        self.theta = theta_reg - (alpha * deri)
