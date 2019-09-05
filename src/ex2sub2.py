@@ -19,7 +19,7 @@ def plot_decision_boundary(X, y, model):
     
     XX = np.array([xx.ravel(), yy.ravel()]).T
     XX = PolynomialFeatures(degree = 6, include_bias = False).fit_transform(XX)
-    Z = np.array([model.test(i) for i in XX]).reshape(xx.shape)
+    Z = np.array([model.predict(i) for i in XX]).reshape(xx.shape)
 
     plt.contourf(xx, yy, Z, alpha = 0.2, levels = 1)
     plt.show()
@@ -32,7 +32,7 @@ X = PolynomialFeatures(degree = 6, include_bias = False).fit_transform(X_raw)
 y = data[:,-1]
 
 model = LogisticRegression(len(X[0]))
-loss = model.train_scipy(X, y)
+loss = model.fit_scipy(X, y)
 print('loss =', loss)
 theta = model.theta
 print('theta =', theta)

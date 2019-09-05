@@ -12,11 +12,11 @@ X = data[:,:-1]
 y = data[:,-1]
 
 model = LogisticRegression(len(X[0]))
-loss = model.train_scipy(X,y)
+loss = model.fit_scipy(X,y)
 theta = model.theta
 print('theta =', theta)
 print('loss =', loss)
-print('test =', model.test([45,85]))
+print('test =', model.predict([45,85]))
 
 def plot_decision_boundary(X, y):
     pos = np.where(y == 1)
