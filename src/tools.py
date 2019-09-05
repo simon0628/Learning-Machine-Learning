@@ -184,37 +184,37 @@ class NN:
         return loss
 
     def forward_prop(self, theta, x):
-        a = list()
-        a.append(self.add_bias(x))
         for i in range(1, self.l):
-            a.append(self.add_bias(self.h(self.theta[i], a[i-1])))
-        return a[:-1]
+            a = self.add_bias(x)
+            x = self.h(theta[i-1], a)
+        return x
 
     def predict(self, x):
         return self.forward_prop(self.theta, x)
 
     def h(self, theta, x):
-        return sigmoid(x.dot(theta))
+        return sigmoid(theta.dot(x))
 
     # CAUTION: don't use self.theta in loss function
     # otherwise the op.minimize function won't work (it passes in temp theta)
     def loss(self, theta, x, y, lam = 1):
-        # vectorized loss function
-        m = len(y)
+        total = 0
+        m,k = y.shape
+        for i in range(m):
+            htheta = np.array(self.forward_prop(theta, x[i]))
 
-        htheta = self.h(theta, x)
+            # CAUTION: if a is too small (i.e. <1e-8 and reduced to 0), log(a) will crash
+            aa = np.where(htheta == 0, 1e-6, htheta)
+            a = np.log(aa)
 
-        # CAUTION: if a is too small (i.e. <1e-8 and reduced to 0), log(a) will crash
-        aa = np.where(htheta == 0, 1e-6, htheta)
-        a = np.log(aa)
+            bb = np.ones(htheta.shape)-htheta
+            bb = np.where(bb == 0, 1e-6, bb)
+            b = np.log(bb)
 
-        bb = np.ones(htheta.shape)-htheta
-        bb = np.where(bb == 0, 1e-6, bb)
-        b = np.log(bb)
+            total += sum([(-y[i][j] * a[j] - (1-y[i][j]) * b[j]) for j in range(k)])
+        regular = lam/(2*m) * sum([np.sum(i) for i in np.square(theta)])
+        return total / m + regular
 
-        cross_entropy = (-y.T.dot(a)) - (np.ones(y.shape)-y).T.dot(b)
-        regular = lam / (2*m) * sum([t*t for t in theta[1:]])
-        return cross_entropy / m + regular
 
     def grad_des(self, alpha, x, y, lam = 1):
         m = len(y)

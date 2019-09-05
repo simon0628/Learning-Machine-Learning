@@ -1,3 +1,4 @@
+#%%
 import pandas as pd
 import numpy as np
 from matplotlib import pyplot as plt 
@@ -31,21 +32,22 @@ theta1, theta2 = load_mat(expath(3) + "ex3weights.mat",['Theta1','Theta2'])
 K, y_dict, y_onehot = onehot(y)
 
 layer_def = [400, 25, 10]
-m = len(X)
+theta = [theta1, theta2]
+model = NN(len(X[0]), layer_def)
+
+#%%
 
 y_preds = list()
 match = list()
-for i in range(m):
-    a1 = np.insert(X[i], 1, 0)
-    z2 = a1.dot(theta1.T)
-    a2 = sigmoid(z2)
-    a2 = np.insert(a2, 1, 0)
-    z3 = a2.dot(theta2.T)
-    a3 = sigmoid(z3)
+for i in range(len(X)):
+    a3 = model.forward_prop(theta, X[i])
     y_pred = y_dict[deonehot(a3)]
+    loss = model.loss(theta, X, y_onehot) 
+    print(loss)
     y_preds.append(y_pred)
     match.append(1 if (y_pred == y[i]) else 0)
 
+#%%
 
 precision = sum(match) / len(match)
 print('precision = ', precision)
