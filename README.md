@@ -4,7 +4,7 @@
 
 **Python implementation of Andrew Ng Machine Learning assignments**
 
-After implementing several applications with the help of machine learning, I decided to look back to basics to acquire a better understanding of how machine learning works and why are they working so well. It turns out that even I’ve used neural networks many times before, it still costs my a whole day to implement the basic neural network in numpy ☹️, which makes me come to believe such a word:
+After implementing several applications with the help of machine learning, I decided to look back to basics to acquire a better understanding of how machine learning works and why are they working so well. It turns out that even I’ve used neural networks many times before, it still costs me a whole day to implement the basic neural network in numpy ☹️, which makes me come to believe such a word:
 
 > To use machine learning is one thing, to understand it is another
 
