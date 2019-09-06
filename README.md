@@ -1,6 +1,6 @@
 # Learning-Machine-Learning
 
-*STILL WORKING…*🤔
+*STILL WORKING…*
 
 **Python implementation of Andrew Ng Machine Learning assignments**
 
