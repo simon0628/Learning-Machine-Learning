@@ -40,10 +40,26 @@ class LinearRegression:
         # print(result)
         return result
 
+    def prepare_arg(self, x):
+        self.std = x.std(axis = 0)
+
+        # remove all the features that have zero std
+        self.zero_std_feature = np.where(self.std == 0)[0]
+        # print('remove features:', self.zero_std_feature)
+        x = np.delete(x, self.zero_std_feature, axis = 1)
+        self.std = np.delete(self.std, self.zero_std_feature)
+        self.theta = np.delete(self.theta, self.zero_std_feature)
+
+        self.mean = x.mean(axis = 0)
+
     def preprocess(self, x, m):
         if m == 1: # single x sample
+            x = np.delete(x, self.zero_std_feature)
+            x = (x - self.mean)/ self.std
             x = np.insert(x,0,1)
         else: # batch x samples
+            x = np.delete(x, self.zero_std_feature, axis = 1)
+            x = (x - self.mean)/ self.std
             x = np.concatenate((np.ones((m,1)),x), axis=1)
         return x
 
@@ -57,6 +73,7 @@ class LinearRegression:
         self.theta = theta_reg - (alpha * deri)
 
     def fit(self, x, y, max_iter = 1500, alpha = 0.1, lam = 1): 
+        self.prepare_arg(x)
         x = self.preprocess(x,len(y))
 
         last_loss = self.loss(self.theta, x, y, lam)
@@ -74,6 +91,7 @@ class LinearRegression:
 
 
     def fit_scipy(self, x, y, max_iter = 1500, lam = 1):
+        self.prepare_arg(x)
         x = self.preprocess(x,len(y))
 
         result = op.minimize(fun = self.loss, 

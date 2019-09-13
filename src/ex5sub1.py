@@ -18,9 +18,8 @@ for i in range(2, m-1):
     model = LinearRegression(n)
     loss = model.fit_scipy(X[1:i,:],y[1:i])
 
-    # error_train = model.loss(model.theta, model.preprocess(X[1:,:],len(y)-1), y[1:], 0)
-    error_val = model.loss(model.theta, model.preprocess(Xval,len(yval)), yval, 0)
     errors_train.append(loss)
+    error_val = model.loss(model.theta, model.preprocess(Xval,len(yval)), yval, 0)
     errors_val.append(error_val)
 
 iteration = range(2, m-1)
