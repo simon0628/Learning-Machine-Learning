@@ -18,7 +18,7 @@ print('theta =', theta)
 print('loss =', loss)
 print('test =', model.predict([45,85]))
 
-def plot_decision_boundary(X, y):
+def plot_decision_boundary(X, y, theta):
     pos = np.where(y == 1)
     neg = np.where(y == 0)
     plt.plot(X[pos][:,0], X[pos][:,1], 'k+')

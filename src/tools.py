@@ -20,23 +20,93 @@ def sigmoid(z):
     return 1/(1+np.exp(-z))
 
 class LinearRegression:
+    def __init__(self, n):
+        # n: feature number
+        self.theta = np.zeros((n+1, 1))
+        self.mean = None
+        self.std = None
+        self.zero_std_feature = None
+
     def h(self, theta, x):
         return x.dot(theta)
 
-    def loss(self, m, theta, x, y):
-        total = 0
-        for i in range(m):
-            diff = self.h(theta, x[i])-y[i]
-            total += diff * diff
-        return total / (2*m)
+    def loss(self, theta, x, y, lam = 0):
+        m = len(y)
+        sub = self.h(theta, x)
+        sub = sub.reshape(y.shape) - y
 
-    def grad_des(self, theta, alpha, m, x, y):
-        tmp_thetas = list()
-        for j in range(len(theta)):
-            tmp_theta = theta[j] - alpha/m * sum([(self.h(theta, x[i])-y[i])*x[i][j] for i in range(m)])
-            tmp_thetas.append(tmp_theta)
-        for j in range(len(theta)):
-            theta[j] = tmp_thetas[j]
+        regular = lam / (2*m) * theta[1:].T.dot(theta[1:])
+        result = sum([i*i for i in sub]) / (2*m) + regular
+        print(result)
+        return result
+
+    def prepare_arg(self, x):
+        self.std = x.std(axis = 0)
+
+        # remove all the features that have zero std
+        self.zero_std_feature = np.where(self.std == 0)[0]
+        # print('remove features:', self.zero_std_feature)
+        x = np.delete(x, self.zero_std_feature, axis = 1)
+        self.std = np.delete(self.std, self.zero_std_feature)
+        self.theta = np.delete(self.theta, self.zero_std_feature)
+
+        self.mean = x.mean(axis = 0)
+
+    def preprocess(self, x, m):
+        if m == 1: # single x sample
+            x = np.delete(x, self.zero_std_feature)
+            x = (x - self.mean)/ self.std
+            x = np.concatenate((np.ones(1),x))
+        else: # batch x samples
+            x = np.delete(x, self.zero_std_feature, axis = 1)
+            x = (x - self.mean)/ self.std
+            x = np.concatenate((np.ones((m,1)),x), axis=1)
+        return x
+
+    def grad_des(self, alpha, x, y, lam = 0):
+        m = len(y)
+
+        beta = self.h(self.theta, x).reshape(y.shape) - y
+        deri = (x.T.dot(beta)/m).reshape(self.theta.shape)
+        theta_reg = np.concatenate(([self.theta[0]], (1-lam/m) * np.array(self.theta[1:])))
+
+        self.theta = theta_reg - (alpha * deri)
+
+    def fit(self, x, y, max_iter = 1500, alpha = 0.1, lam = 1): 
+        self.prepare_arg(x)
+        x = self.preprocess(x,len(y))
+
+        last_loss = self.loss(self.theta, x, y, lam)
+        for _ in range(max_iter):  
+            self.grad_des(alpha, x, y, lam)
+            # print(last_loss)
+            
+            loss = self.loss(self.theta, x, y, lam)
+            # print(loss)
+            # stop when the loss is steady
+            if np.abs(last_loss - loss) < 1e-6:
+                break
+            last_loss = loss
+        return loss
+
+
+    def fit_scipy(self, x, y, max_iter = 1500, lam = 1):
+        self.prepare_arg(x)
+        x = self.preprocess(x,len(y))
+
+        result = op.minimize(fun = self.loss, 
+                                x0 = self.theta, 
+                                args = (x, y, lam),
+                                tol=1e-3,
+                                options={'maxiter': max_iter})
+        # print(result)
+        self.theta = result.x
+        loss = result.fun
+        return loss
+
+    def predict(self, x, m = 1):
+        x = self.preprocess(x,m)
+        return self.h(self.theta, x)
 
 
 class LogisticRegression:
